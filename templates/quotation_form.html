@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Create VRF Quotation | Win Spares{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-11">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="fw-bold text-primary mb-1">Create VRF Quotation</h3>
+                <p class="text-muted small mb-0">Fill in the details below to calculate totals and generate a
+                    professional preview.</p>
+            </div>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x-lg me-1"></i> Cancel
+            </a>
+        </div>
+
+        <form action="{{ url_for('quotation.preview_quotation') }}" method="POST" id="quotation-form">
+
+            <!-- SECTION 1: QUOTATION DETAILS -->
+            <div class="app-card">
+                <div class="section-header">
+                    <span><i class="bi bi-info-circle me-2"></i> Section A — Quotation Details</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="date" class="form-label">Quotation Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="date" name="date" value="{{ initial_date }}"
+                            required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="quotationNo" class="form-label">Quotation Number</label>
+                        <input type="text" class="form-control text-muted" id="quotationNo" name="quotationNo"
+                            value="{{ next_q_no }}" readonly>
+                        <div class="form-text">Automatically generated upon saving.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="serviceType" class="form-label">Service Type</label>
+                        <select class="form-select" id="serviceType" name="serviceType">
+                            {% for tpl in service_templates %}
+                            <option value="{{ tpl.id }}" {% if tpl.id=='vrf_amc' %}selected{% endif %}>{{ tpl.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: CUSTOMER DETAILS -->
+            <div class="app-card position-relative">
+                <div class="section-header">
+                    <span><i class="bi bi-building me-2"></i> Section B — Customer Details</span>
+                    <span class="small text-muted fw-normal">Type to search existing customers</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6 position-relative">
+                        <label for="customer-name" class="form-label">Customer Name <span
+                                class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="customer-name" name="customer[name]"
+                            placeholder="e.g. Visesha Silk Sarees LLP"
+                            value="{{ initial_customer.name if initial_customer else '' }}" autocomplete="off" required>
+                        <div id="customer-suggestions" class="autocomplete-suggestions" style="display: none;"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="customer-contactPerson" class="form-label">Contact Person (Optional)</label>
+                        <input type="text" class="form-control" id="customer-contactPerson"
+                            name="customer[contactPerson]" placeholder="e.g. Purchase Manager"
+                            value="{{ initial_customer.contactPerson if initial_customer else '' }}">
+                    </div>
+                    <div class="col-12">
+                        <label for="customer-address" class="form-label">Customer Address <span
+                                class="text-danger">*</span></label>
+                        <textarea class="form-control" id="customer-address" name="customer[address]" rows="2"
+                            placeholder="Shop No 1, 1216, Shri Hari Building, Nava India, Avinashi Road, Coimbatore – 641004"
+                            required>{{ initial_customer.address if initial_customer else '' }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="customer-phone" class="form-label">Phone (Optional)</label>
+                        <input type="text" class="form-control" id="customer-phone" name="customer[phone]"
+                            placeholder="e.g. 98765 43210"
+                            value="{{ initial_customer.phone if initial_customer else '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="customer-email" class="form-label">Email (Optional)</label>
+                        <input type="email" class="form-control" id="customer-email" name="customer[email]"
+                            placeholder="e.g. info@viseshasilk.com"
+                            value="{{ initial_customer.email if initial_customer else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: ESTIMATE CALCULATION -->
+            <div class="app-card">
+                <div class="section-header">
+                    <span><i class="bi bi-calculator me-2"></i> Section C — Estimate Calculation</span>
+                    <button type="button" class="btn btn-sm btn-win-outline" id="add-item-btn">
+                        <i class="bi bi-plus-lg me-1"></i> Add Item
+                    </button>
+                </div>
+
+                <div class="table-responsive mb-3">
+                    <table class="table align-middle table-custom" id="items-table">
+                        <thead>
+                            <tr>
+                                <th>Item Description <span class="text-danger">*</span></th>
+                                <th style="width: 140px;">Qty <span class="text-danger">*</span></th>
+                                <th style="width: 170px;">Rate (₹) <span class="text-danger">*</span></th>
+                                <th style="width: 180px;">Amount (₹)</th>
+                                <th class="text-center" style="width: 60px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-table-body">
+                            {% if initial_items and initial_items|length > 0 %}
+                            {% for it in initial_items %}
+                            <tr class="item-row">
+                                <td>
+                                    <input type="text" name="items[{{ loop.index0 }}][item]"
+                                        class="form-control item-name" value="{{ it.item }}" required>
+                                </td>
+                                <td>
+                                    <input type="number" step="any" min="0.01" name="items[{{ loop.index0 }}][qty]"
+                                        class="form-control item-qty" value="{{ it.qty }}" required>
+                                </td>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="number" step="any" min="0" name="items[{{ loop.index0 }}][rate]"
+                                            class="form-control item-rate" value="{{ it.rate }}" required>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control item-amount-display" readonly value="₹{{ "
+                                        {:,.2f}".format(it.amount if (it.amount is defined and it.amount is not none)
+                                        else ((it.qty|default(1)|float) * (it.rate|default(0)|float))) }}/-">
+                                    <input type="hidden" name="items[{{ loop.index0 }}][amount]" class="item-amount-val"
+                                        value="{{ it.amount if (it.amount is defined and it.amount is not none) else ((it.qty|default(1)|float) * (it.rate|default(0)|float)) }}">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm delete-item-btn"
+                                        title="Remove item">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr class="item-row">
+                                <td>
+                                    <input type="text" name="items[0][item]" class="form-control item-name"
+                                        placeholder="VRF Full Service" value="VRF Full Service" required>
+                                </td>
+                                <td>
+                                    <input type="number" step="any" min="0.01" name="items[0][qty]"
+                                        class="form-control item-qty" value="6" required>
+                                </td>
+                                <td>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="number" step="any" min="0" name="items[0][rate]"
+                                            class="form-control item-rate" placeholder="2500" value="2500" required>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control item-amount-display" readonly
+                                        value="₹15,000/-">
+                                    <input type="hidden" name="items[0][amount]" class="item-amount-val" value="15000">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm delete-item-btn"
+                                        title="Remove item">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tax & Summary Breakdown -->
+                <div class="row align-items-center justify-content-between pt-3 border-top">
+                    <div class="col-md-5 mb-3 mb-md-0">
+                        <h6 class="fw-bold mb-2">Tax Settings</h6>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label for="sgstRate" class="form-label small">SGST %</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="sgstRate"
+                                        name="tax[sgstRate]" value="{{ initial_tax.sgstRate if initial_tax else 9.0 }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label for="cgstRate" class="form-label small">CGST %</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="cgstRate"
+                                        name="tax[cgstRate]" value="{{ initial_tax.cgstRate if initial_tax else 9.0 }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-5">
+                        <div class="bg-light p-3 rounded border">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal:</span>
+                                <strong id="summary-subtotal">₹15,000/-</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">SGST (9%):</span>
+                                <span id="summary-sgst">₹1,350/-</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">CGST (9%):</span>
+                                <span id="summary-cgst">₹1,350/-</span>
+                            </div>
+                            <div class="d-flex justify-content-between border-top pt-2 mt-2 fs-5 fw-bold text-primary">
+                                <span>Grand Total:</span>
+                                <span id="summary-grand-total">₹17,700/-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: SCOPE OF SERVICE -->
+            <div class="app-card">
+                <div class="section-header">
+                    <span><i class="bi bi-list-check me-2"></i> Section D — Scope of Service</span>
+                    <button type="button" class="btn btn-sm btn-win-outline" id="add-scope-btn">
+                        <i class="bi bi-plus-lg me-1"></i> Add Scope Item
+                    </button>
+                </div>
+
+                <p class="text-muted small mb-3">Reorder or edit the default service scope checklist below:</p>
+                <div id="scope-items-container">
+                    {% if initial_scope and initial_scope|length > 0 %}
+                    {% for s_item in initial_scope %}
+                    <div class="scope-item-row mb-2 d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary scope-num">{{ loop.index }}</span>
+                        <input type="text" name="scope[]" class="form-control scope-input" value="{{ s_item }}"
+                            required>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary move-up-btn"
+                                title="Move Up">&uarr;</button>
+                            <button type="button" class="btn btn-outline-secondary move-down-btn"
+                                title="Move Down">&darr;</button>
+                            <button type="button" class="btn btn-outline-danger delete-scope-btn"
+                                title="Delete">&times;</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    {% for s_item in default_scope %}
+                    <div class="scope-item-row mb-2 d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary scope-num">{{ loop.index }}</span>
+                        <input type="text" name="scope[]" class="form-control scope-input" value="{{ s_item }}"
+                            required>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary move-up-btn"
+                                title="Move Up">&uarr;</button>
+                            <button type="button" class="btn btn-outline-secondary move-down-btn"
+                                title="Move Down">&darr;</button>
+                            <button type="button" class="btn btn-outline-danger delete-scope-btn"
+                                title="Delete">&times;</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- FORM BUTTONS -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary px-4">Cancel</a>
+                <button type="submit" class="btn btn-win-primary btn-lg px-5 shadow-sm">
+                    Review Quotation <i class="bi bi-arrow-right me-1"></i>
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/quotation.js') }}"></script>
+{% endblock %}

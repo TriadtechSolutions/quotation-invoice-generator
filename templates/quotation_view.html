@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}{{ q.quotationNo }} - {{ q.customer.name }} | Win Spares{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-11">
+
+        <!-- Top Action Bar -->
+        <div class="card shadow-sm mb-4 border-0 no-print bg-light">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <a href="{{ url_for('quotation.history') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to History
+                </a>
+
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success px-3 py-2 fs-6">
+                        <i class="bi bi-check-circle me-1"></i> Generated: {{ q.quotationNo }}
+                    </span>
+                    <a href="{{ url_for('quotation.duplicate_quotation', q_id=q.id) }}" class="btn btn-outline-info">
+                        <i class="bi bi-copy me-1"></i> Duplicate
+                    </a>
+                    <a href="{{ url_for('quotation.download_pdf', q_id=q.id) }}"
+                        class="btn btn-win-primary px-4 shadow-sm">
+                        <i class="bi bi-download me-1"></i> Download PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Centered A4 Document Display -->
+        <div class="quotation-paper-container">
+            <div class="quotation-paper">
+
+                <!-- Header Top Right -->
+                <div class="quotation-header-top">
+                    <div>Win Spares</div>
+                    <div>{{ date_display }}</div>
+                </div>
+
+                <!-- Main Title -->
+                <div class="quotation-title">
+                    {{ company.quotationTitle if company.quotationTitle else 'VRF Quotation' }}
+                </div>
+
+                <!-- Dashed Line -->
+                <div class="dashed-line"></div>
+
+                <!-- FROM & CUSTOMER Bordered Section -->
+                <table class="party-info-table">
+                    <tr>
+                        <td>
+                            <div class="party-title">FROM</div>
+                            <div class="party-name">{{ company.name }}</div>
+                            <div class="party-address">{{ company.address }}</div>
+                            <div class="party-contact">Ph.no: {{ company.phone }}</div>
+                            {% if company.gstin %}
+                            <div class="party-contact">GSTIN: {{ company.gstin }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="party-title">CUSTOMER</div>
+                            <div class="party-name">{{ customer.name }}</div>
+                            <div class="party-address">{{ customer.address }}</div>
+                            {% if customer.contactPerson %}
+                            <div class="party-contact">Attn: {{ customer.contactPerson }}</div>
+                            {% endif %}
+                            {% if customer.phone %}
+                            <div class="party-contact">Ph: {{ customer.phone }}</div>
+                            {% endif %}
+                            {% if customer.gstin %}
+                            <div class="party-contact">GSTIN: {{ customer.gstin }}</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Section 1: Estimate Calculation -->
+                <div class="section-title">1. Estimate Calculation</div>
+                <table class="estimate-table">
+                    <thead>
+                        <tr>
+                            <th class="col-item">Item</th>
+                            <th class="col-qty">Qty</th>
+                            <th class="col-rate">Rate</th>
+                            <th class="col-amount">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.item }}</td>
+                            <td>{{ item.qty }} {{ item.unit if item.unit else 'Units' }}</td>
+                            <td>{{ item.rate_formatted }}</td>
+                            <td>{{ item.amount_formatted }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        <!-- SGST Row -->
+                        <tr>
+                            <td colspan="3" class="text-right">SGST {{ sgst_rate_str }}</td>
+                            <td>{{ sgst_amount_formatted }}</td>
+                        </tr>
+
+                        <!-- CGST Row -->
+                        <tr>
+                            <td colspan="3" class="text-right">CGST {{ cgst_rate_str }}</td>
+                            <td>{{ cgst_amount_formatted }}</td>
+                        </tr>
+
+                        <!-- Grand Total Row -->
+                        <tr>
+                            <td colspan="3" class="text-right text-italic-bold">Grand Total</td>
+                            <td class="text-italic-bold">{{ grand_total_formatted }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Section 2: Scope of Service -->
+                <div class="section-title">2. Scope of Service</div>
+                <ul class="scope-list">
+                    {% for scope_item in scope %}
+                    <li>{{ scope_item }}</li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Footer Section -->
+                <div class="quotation-footer">
+                    <div class="greeting-text">** {{ company.greeting if company.greeting else 'Greetings from WIN
+                        SPARES!' }} **</div>
+                    <div class="closing-text">{{ company.closingText if company.closingText else 'Thank you for allowing
+                        us to serve you. Please find our quotation for your requirements below.' }}</div>
+                </div>
+
+                <!-- Bottom Page Footer Line -->
+                <div class="service-footer-line">{{ company.serviceFooter if company.serviceFooter else 'VRF Annual
+                    Maintenance Contract | Win Spares' }}</div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

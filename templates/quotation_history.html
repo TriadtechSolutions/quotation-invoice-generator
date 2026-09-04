@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Quotation History | Win Spares{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-11">
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h3 class="fw-bold text-primary mb-1">Quotation History</h3>
+                <p class="text-muted small mb-0">View, search, and download generated VRF quotations.</p>
+            </div>
+            <a href="{{ url_for('quotation.new_quotation') }}" class="btn btn-win-primary shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i> Create New Quotation
+            </a>
+        </div>
+
+        <!-- Search Card -->
+        <div class="app-card mb-4">
+            <form action="{{ url_for('quotation.history') }}" method="GET" class="row g-3 align-items-center">
+                <div class="col-md-9">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" class="form-control"
+                            placeholder="Search by Quotation Number (e.g. QTN-2026-001) or Customer Name..."
+                            value="{{ search_query }}">
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-win-primary flex-grow-1">Search</button>
+                    {% if search_query %}
+                    <a href="{{ url_for('quotation.history') }}" class="btn btn-outline-secondary"
+                        title="Clear search">Clear</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Quotation List Table -->
+        <div class="app-card">
+            {% if quotations and quotations|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 160px;">Quotation No</th>
+                            <th style="width: 120px;">Date</th>
+                            <th>Customer Name</th>
+                            <th style="width: 150px;">Grand Total</th>
+                            <th style="width: 110px;">Status</th>
+                            <th class="text-end" style="width: 240px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in quotations %}
+                        <tr>
+                            <td class="fw-bold text-primary">{{ q.quotationNo }}</td>
+                            <td>{{ q.date }}</td>
+                            <td class="fw-semibold">{{ q.customer.name }}</td>
+                            <td class="fw-bold">₹{{ "{:,.2f}".format(q.grandTotal) }}</td>
+                            <td><span class="badge bg-success">Generated</span></td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('quotation.view_quotation', q_id=q.id) }}"
+                                        class="btn btn-outline-primary" title="View details">
+                                        <i class="bi bi-eye me-1"></i> View
+                                    </a>
+                                    <a href="{{ url_for('quotation.download_pdf', q_id=q.id) }}"
+                                        class="btn btn-outline-secondary" title="Download PDF">
+                                        <i class="bi bi-download me-1"></i> PDF
+                                    </a>
+                                    <a href="{{ url_for('quotation.duplicate_quotation', q_id=q.id) }}"
+                                        class="btn btn-outline-info" title="Duplicate into new quotation">
+                                        <i class="bi bi-copy me-1"></i> Duplicate
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-file-earmark-x fs-1 text-muted d-block mb-3"></i>
+                {% if search_query %}
+                <h5 class="text-muted">No quotations found matching "{{ search_query }}"</h5>
+                <a href="{{ url_for('quotation.history') }}" class="btn btn-outline-primary btn-sm mt-2">Clear Search
+                    Filter</a>
+                {% else %}
+                <h5 class="text-muted">No quotations created yet</h5>
+                <p class="text-muted small">Click the button below to generate your first quotation.</p>
+                <a href="{{ url_for('quotation.new_quotation') }}" class="btn btn-win-primary mt-2">Create Quotation</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

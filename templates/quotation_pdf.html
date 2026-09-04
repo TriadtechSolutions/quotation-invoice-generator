@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ q_no }} - {{ customer.name }}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 15mm 18mm 22mm 18mm;
+
+            @bottom-center {
+                content: element(service-footer);
+            }
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* Header Top Right */
+        .header-top {
+            text-align: right;
+            font-weight: bold;
+            font-size: 15px;
+            color: #1c3b68;
+            margin-bottom: 10px;
+        }
+
+        /* Title */
+        .doc-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1c3b68;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .dashed-divider {
+            border-top: 1.5px dashed #1c3b68;
+            margin-bottom: 25px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* FROM & CUSTOMER Table */
+        .party-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1.5px solid #000000;
+            margin-bottom: 30px;
+            table-layout: fixed;
+            background-color: #f0f4f8;
+            box-sizing: border-box;
+        }
+
+        .party-table td {
+            width: 50%;
+            vertical-align: top;
+            padding: 10px 14px;
+            border: 1.5px solid #000000;
+            font-size: 13px;
+            line-height: 1.45;
+            background-color: #f0f4f8;
+            box-sizing: border-box;
+        }
+
+        .party-header {
+            font-weight: bold;
+            font-size: 14px;
+            color: #1c3b68;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .party-name {
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 3px;
+        }
+
+        .party-address {
+            white-space: pre-line;
+            color: #222222;
+        }
+
+        .party-contact {
+            margin-top: 4px;
+            color: #222222;
+        }
+
+        /* Section Headings */
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1c3b68;
+            margin-top: 22px;
+            margin-bottom: 12px;
+        }
+
+        /* Estimate Calculation Table */
+        .estimate-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1.5px solid #000000;
+            margin-bottom: 30px;
+            table-layout: fixed;
+            box-sizing: border-box;
+        }
+
+        .estimate-table th {
+            background-color: #1c3b68;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 15px;
+            padding: 9px 12px;
+            text-align: left;
+            border: 1.5px solid #000000;
+            box-sizing: border-box;
+        }
+
+        .estimate-table td {
+            padding: 9px 12px;
+            border: 1.5px solid #000000;
+            font-size: 13.5px;
+            color: #000000;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+
+        .estimate-table .col-item {
+            width: 44%;
+        }
+
+        .estimate-table .col-qty {
+            width: 18%;
+        }
+
+        .estimate-table .col-rate {
+            width: 19%;
+        }
+
+        .estimate-table .col-amount {
+            width: 19%;
+        }
+
+        .text-italic {
+            font-style: italic;
+        }
+
+        .text-bold {
+            font-weight: bold;
+        }
+
+        .text-italic-bold {
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* Scope of Service List */
+        .scope-list {
+            margin-top: 8px;
+            margin-bottom: 45px;
+            padding-left: 24px;
+        }
+
+        .scope-list li {
+            margin-bottom: 7px;
+            font-size: 13.5px;
+            color: #111111;
+            font-weight: 500;
+        }
+
+        /* Footer Section */
+        .footer-container {
+            text-align: center;
+            margin-top: 45px;
+            page-break-inside: avoid;
+        }
+
+        .greeting-text {
+            font-weight: bold;
+            font-style: italic;
+            font-size: 14px;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        .closing-text {
+            font-style: italic;
+            font-size: 13px;
+            color: #333333;
+            margin-bottom: 25px;
+        }
+
+        .service-footer-line {
+            position: running(service-footer);
+            font-size: 11.5px;
+            color: #777777;
+            text-align: center;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Header -->
+    <div class="header-top">
+        <div>Win Spares</div>
+        <div>{{ date_display }}</div>
+    </div>
+
+    <!-- Document Title -->
+    <div class="doc-title">
+        {{ company.quotationTitle if company.quotationTitle else 'VRF Quotation' }}
+    </div>
+
+    <!-- Dashed Line -->
+    <div class="dashed-divider"></div>
+
+    <!-- FROM / CUSTOMER Table -->
+    <table class="party-table">
+        <tr>
+            <td>
+                <div class="party-header">FROM</div>
+                <div class="party-name">{{ company.name }}</div>
+                <div class="party-address">{{ company.address }}</div>
+                <div class="party-contact">Ph.no: {{ company.phone }}</div>
+                {% if company.gstin %}
+                <div class="party-contact">GSTIN: {{ company.gstin }}</div>
+                {% endif %}
+            </td>
+            <td>
+                <div class="party-header">CUSTOMER</div>
+                <div class="party-name">{{ customer.name }}</div>
+                <div class="party-address">{{ customer.address }}</div>
+                {% if customer.contactPerson %}
+                <div class="party-contact">Attn: {{ customer.contactPerson }}</div>
+                {% endif %}
+                {% if customer.phone %}
+                <div class="party-contact">Ph: {{ customer.phone }}</div>
+                {% endif %}
+                {% if customer.gstin %}
+                <div class="party-contact">GSTIN: {{ customer.gstin }}</div>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <!-- 1. Estimate Calculation -->
+    <div class="section-title">1. Estimate Calculation</div>
+    <table class="estimate-table">
+        <thead>
+            <tr>
+                <th class="col-item">Item</th>
+                <th class="col-qty">Qty</th>
+                <th class="col-rate">Rate</th>
+                <th class="col-amount">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.item }}</td>
+                <td>{{ item.qty }} {{ item.unit if item.unit else 'Units' }}</td>
+                <td>{{ item.rate }}</td>
+                <td>{{ item.amount }}</td>
+            </tr>
+            {% endfor %}
+
+            <!-- SGST Row -->
+            <tr>
+                <td colspan="3" class="text-right">SGST {{ sgst_rate_str }}</td>
+                <td>{{ sgst_amount }}</td>
+            </tr>
+
+            <!-- CGST Row -->
+            <tr>
+                <td colspan="3" class="text-right">CGST {{ cgst_rate_str }}</td>
+                <td>{{ cgst_amount }}</td>
+            </tr>
+
+            <!-- Grand Total Row -->
+            <tr>
+                <td colspan="3" class="text-right text-italic-bold">Grand Total</td>
+                <td class="text-italic-bold">{{ grand_total }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 2. Scope of Service -->
+    <div class="section-title">2. Scope of Service</div>
+    <ul class="scope-list">
+        {% for scope_item in scope %}
+        <li>{{ scope_item }}</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Footer Section -->
+    <div class="footer-container">
+        <div class="greeting-text">** {{ company.greeting if company.greeting else 'Greetings from WIN SPARES!' }} **
+        </div>
+        <div class="closing-text">{{ company.closingText if company.closingText else 'Thank you for allowing us to serve
+            you. Please find our quotation for your requirements below.' }}</div>
+    </div>
+
+    <!-- Running Page Footer (Placed in @bottom-center by WeasyPrint) -->
+    <div class="service-footer-line">{{ company.serviceFooter if company.serviceFooter else 'VRF Annual Maintenance
+        Contract | Win Spares' }}</div>
+
+</body>
+
+</html>

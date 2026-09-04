@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Win Spares Document Management System{% endblock %}</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom App CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/quotation.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-3 no-print">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2 navbar-brand-logo" href="{{ url_for('dashboard.index') }}">
+        <i class="bi bi-file-earmark-text-fill text-primary fs-4"></i>
+        <span>WIN SPARES <span class="fw-normal text-muted fs-6">| Document Management</span></span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto gap-2">
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'dashboard.index' %}active fw-bold{% endif %}"
+              href="{{ url_for('dashboard.index') }}">
+              <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'quotation.new_quotation' %}active fw-bold{% endif %}"
+              href="{{ url_for('quotation.new_quotation') }}">
+              <i class="bi bi-plus-circle-fill me-1"></i> Create Quotation
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'invoice.new_invoice' %}active fw-bold{% endif %}"
+              href="{{ url_for('invoice.new_invoice') }}">
+              <i class="bi bi-file-earmark-plus-fill me-1"></i> Create Invoice
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'quotation.history' %}active fw-bold{% endif %}"
+              href="{{ url_for('quotation.history') }}">
+              <i class="bi bi-clock-history me-1"></i> Quotation History
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'invoice.invoice_history' %}active fw-bold{% endif %}"
+              href="{{ url_for('invoice.invoice_history') }}">
+              <i class="bi bi-receipt me-1"></i> Invoice History
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  <div class="container mt-3 no-print">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+      role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content -->
+  <main class="container my-4">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center no-print">
+    <div class="container">
+      <p class="mb-0 text-muted">&copy; {{ now_year if now_year else 2026 }} <strong>Win Spares</strong> Document
+        Management System. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>
