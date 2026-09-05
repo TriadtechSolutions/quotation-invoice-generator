@@ -40,7 +40,7 @@
 
                 <!-- Main Title -->
                 <div class="quotation-title">
-                    {{ company.invoiceTitle if company.invoiceTitle else 'VRF INVOICE' }}
+                    {{ company.invoiceTitle if company.invoiceTitle else 'Invoice' }}
                 </div>
 
                 <!-- Dashed Line -->
@@ -142,12 +142,10 @@
                     <div class="greeting-text">** {{ company.greeting if company.greeting else 'Greetings from WIN
                         SPARES!' }} **</div>
                     <div class="closing-text">{{ company.closingText if company.closingText else 'Thank you for allowing
-                        us to serve you. Please find our quotation for your requirements below.' }}</div>
+                        us to serve you. Please find our invoice for your requirements below.<br>We appreciate the
+                        opportunity to serve you.'|safe }}</div>
                 </div>
 
-                <!-- Bottom Page Footer Line -->
-                <div class="service-footer-line">{{ company.serviceFooter if company.serviceFooter else 'VRF Annual
-                    Maintenance Contract | Win Spares' }}</div>
 
             </div>
         </div>

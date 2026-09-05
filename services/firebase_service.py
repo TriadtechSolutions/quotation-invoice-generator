@@ -21,10 +21,11 @@ class FirebaseService:
                 "name": "Win Spares",
                 "address": "No: 70, Dr. Alagappa Road, near Six Corner Road\nTatabad, Coimbatore - 641012",
                 "phone": "93617 62191",
-                "quotationTitle": "VRF Quotation",
+                "quotationTitle": "Quotation",
+                "invoiceTitle": "Invoice",
                 "greeting": "Greetings from WIN SPARES!",
                 "closingText": "Thank you for allowing us to serve you. Please find our quotation for your requirements below.",
-                "serviceFooter": "VRF Annual Maintenance Contract | Win Spares"
+                "serviceFooter": ""
             })
 
         # 2. Service Template: VRF AMC
@@ -33,7 +34,7 @@ class FirebaseService:
         if not tpl_doc.exists:
             tpl_ref.set({
                 "name": "VRF Annual Maintenance Contract",
-                "quotationTitle": "VRF Quotation",
+                "quotationTitle": "Quotation",
                 "defaultSGST": 9.0,
                 "defaultCGST": 9.0,
                 "scope": [
@@ -71,11 +72,13 @@ class FirebaseService:
             "name": "Win Spares",
             "address": "No: 70, Dr. Alagappa Road, near Six Corner Road\nTatabad, Coimbatore - 641012",
             "phone": "93617 62191",
-            "quotationTitle": "VRF Quotation",
+            "quotationTitle": "Quotation",
+            "invoiceTitle": "Invoice",
             "greeting": "Greetings from WIN SPARES!",
             "closingText": "Thank you for allowing us to serve you. Please find our quotation for your requirements below.",
-            "serviceFooter": "VRF Annual Maintenance Contract | Win Spares"
+            "serviceFooter": ""
         }
+
 
     def get_service_template(self, template_id: str = "vrf_amc") -> dict:
         """Fetch service template details."""

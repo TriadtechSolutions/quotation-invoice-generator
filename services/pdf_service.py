@@ -39,9 +39,9 @@ class PDFService:
         Returns (pdf_bytes, suggested_filename).
         """
         customer = quotation_data.get('customer', {})
-        q_no = quotation_data.get('quotationNo', 'QTN-2026-000')
-        clean_cust = sanitize_filename(customer.get('name', 'Customer'))
-        filename = f"{q_no}_{clean_cust}.pdf"
+        cust_name = customer.get('name', 'Customer').strip()
+        clean_cust = sanitize_filename(cust_name)
+        filename = f"Quotation_{clean_cust}.pdf"
 
         # Try WeasyPrint first
         if HAS_WEASYPRINT:
@@ -69,9 +69,10 @@ class PDFService:
         Returns (pdf_bytes, suggested_filename).
         """
         customer = invoice_data.get('customer', {})
-        inv_no = invoice_data.get('invoiceNo', 'INV-2026-000')
-        clean_cust = sanitize_filename(customer.get('name', 'Customer'))
-        filename = f"{inv_no}_{clean_cust}.pdf"
+        cust_name = customer.get('name', 'Customer').strip()
+        clean_cust = sanitize_filename(cust_name)
+        filename = f"Invoice_{clean_cust}.pdf"
+
 
         if HAS_WEASYPRINT:
             try:
@@ -265,12 +266,13 @@ class PDFService:
         story.append(Spacer(1, 8))
 
         # Title
-        default_title = 'VRF INVOICE' if is_invoice else 'VRF Quotation'
+        default_title = 'Invoice' if is_invoice else 'Quotation'
         doc_title = company.get('invoiceTitle' if is_invoice else 'quotationTitle') or default_title
-        story.append(Paragraph(doc_title.upper(), title_style))
+        story.append(Paragraph(doc_title, title_style))
 
         # Divider line
         story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#CCCCCC'), spaceAfter=12))
+
 
         # FROM & CUSTOMER Table
         from_lines = [
@@ -384,14 +386,14 @@ class PDFService:
         # Footer
         story.append(Spacer(1, 16))
         greeting = company.get('greeting', 'Greetings from WIN SPARES!')
-        closing = company.get('closingText', 'Thank you for allowing us to serve you.')
-        footer_line = company.get('serviceFooter', 'VRF Annual Maintenance Contract | Win Spares')
+        default_closing = 'Thank you for allowing us to serve you. Please find our invoice for your requirements below.<br/>We appreciate the opportunity to serve you.' if is_invoice else 'Thank you for allowing us to serve you. Please find our quotation for your requirements below.'
+        closing = company.get('closingText', default_closing)
 
         center_style = ParagraphStyle('CenterFooter', parent=normal_style, alignment=TA_CENTER)
         story.append(Paragraph(f"<b>** {greeting} **</b>", center_style))
+        story.append(Spacer(1, 4))
         story.append(Paragraph(closing, center_style))
-        story.append(Spacer(1, 10))
-        story.append(Paragraph(f"<i>{footer_line}</i>", center_style))
+
 
         doc.build(story)
         pdf_bytes = buffer.getvalue()

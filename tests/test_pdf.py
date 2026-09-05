@@ -61,7 +61,8 @@ class TestPDFGeneration(unittest.TestCase):
             self.assertIsNotNone(pdf_bytes)
             self.assertTrue(len(pdf_bytes) > 0)
             self.assertTrue(pdf_bytes.startswith(b'%PDF-'))
-            self.assertEqual(filename, "QTN-2026-001_Visesha-Silk-Sarees-LLP.pdf")
+            self.assertEqual(filename, "Quotation_Visesha-Silk-Sarees-LLP.pdf")
+
 
     def test_reportlab_fallback_direct(self):
         """Test direct ReportLab PDF generation for quotation and invoice."""
