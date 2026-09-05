@@ -182,21 +182,38 @@ def preview_quotation():
 
 @quotation_bp.route('/quotation/save', methods=['POST'])
 def save_quotation():
-    """Save quotation to Firestore and return generated WeasyPrint PDF download."""
+    """Save quotation to data store and return generated PDF download or JSON fallback."""
     raw_data = parse_form_payload(request)
 
     created_quotation, errors = q_service.create_quotation(raw_data)
     if errors:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            return jsonify({'success': False, 'errors': errors}), 400
         for err in errors:
             flash(err, 'error')
         return redirect(url_for('quotation.new_quotation'))
 
-    # Generate PDF
-    pdf_bytes, filename = PDFService.generate_quotation_pdf(created_quotation)
+    try:
+        pdf_bytes, filename = PDFService.generate_quotation_pdf(created_quotation)
+        response = Response(pdf_bytes, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.headers['X-Quotation-ID'] = created_quotation.get('id', '')
+        return response
+    except Exception as err:
+        logger.error(f"Server-side PDF generation error for quotation {created_quotation.get('id')}: {err}")
+        # Return JSON signaling client-side PDF generation fallback
+        q_id = created_quotation.get('id', '')
+        clean_cust = created_quotation.get('customer', {}).get('name', 'Customer')
+        q_no = created_quotation.get('quotationNo', 'QTN-2026-000')
+        fallback_filename = f"{q_no}_{clean_cust}.pdf"
+        return jsonify({
+            'success': True,
+            'fallback_client_pdf': True,
+            'quotation_id': q_id,
+            'filename': fallback_filename,
+            'message': 'Quotation saved successfully. Utilizing browser-native PDF engine.'
+        }), 200
 
-    response = Response(pdf_bytes, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
 
 
 @quotation_bp.route('/quotations')
@@ -255,11 +272,16 @@ def download_pdf(q_id):
         flash('Quotation not found.', 'error')
         return redirect(url_for('quotation.history'))
 
-    pdf_bytes, filename = PDFService.generate_quotation_pdf(q)
+    try:
+        pdf_bytes, filename = PDFService.generate_quotation_pdf(q)
+        response = Response(pdf_bytes, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as err:
+        logger.error(f"Error downloading quotation PDF {q_id}: {err}")
+        flash('Unable to compile PDF server-side. Viewing quotation preview instead.', 'warning')
+        return redirect(url_for('quotation.view_quotation', q_id=q_id))
 
-    response = Response(pdf_bytes, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
 
 
 @quotation_bp.route('/quotation/<q_id>/duplicate')

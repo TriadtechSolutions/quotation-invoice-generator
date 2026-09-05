@@ -63,6 +63,40 @@ class TestPDFGeneration(unittest.TestCase):
             self.assertTrue(pdf_bytes.startswith(b'%PDF-'))
             self.assertEqual(filename, "QTN-2026-001_Visesha-Silk-Sarees-LLP.pdf")
 
+    def test_reportlab_fallback_direct(self):
+        """Test direct ReportLab PDF generation for quotation and invoice."""
+        sample_quotation = {
+            "quotationNo": "QTN-2026-002",
+            "date": "2026-09-05",
+            "companySnapshot": {"name": "Win Spares", "address": "Coimbatore"},
+            "customer": {"name": "Test Customer"},
+            "items": [{"item": "Service Unit", "qty": 1, "rate": 1000, "amount": 1000}],
+            "tax": {"sgstRate": 9, "cgstRate": 9, "sgstAmount": 90, "cgstAmount": 90},
+            "grandTotal": 1180,
+            "scope": ["Testing Scope"]
+        }
+
+        pdf_bytes = PDFService._generate_quotation_reportlab(sample_quotation)
+        self.assertIsNotNone(pdf_bytes)
+        self.assertTrue(pdf_bytes.startswith(b'%PDF-'))
+
+        sample_invoice = {
+            "invoiceNo": "INV-2026-002",
+            "date": "2026-09-05",
+            "companySnapshot": {"name": "Win Spares", "address": "Coimbatore"},
+            "customer": {"name": "Test Customer"},
+            "items": [{"item": "Invoice Unit", "qty": 1, "rate": 2000, "amount": 2000}],
+            "tax": {"sgstRate": 9, "cgstRate": 9, "sgstAmount": 180, "cgstAmount": 180},
+            "grandTotal": 2360,
+            "scope": ["Invoice Scope"],
+            "notes": ["Important Note Test"]
+        }
+
+        inv_pdf_bytes = PDFService._generate_invoice_reportlab(sample_invoice)
+        self.assertIsNotNone(inv_pdf_bytes)
+        self.assertTrue(inv_pdf_bytes.startswith(b'%PDF-'))
+
 
 if __name__ == '__main__':
     unittest.main()
+

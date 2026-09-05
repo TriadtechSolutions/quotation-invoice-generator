@@ -177,6 +177,21 @@
 
 {% block extra_js %}
 <script>
+    function generateClientPdf(element, filename) {
+        if (typeof html2pdf === 'undefined') {
+            window.print();
+            return Promise.resolve();
+        }
+        const opt = {
+            margin: [10, 10, 10, 10],
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        return html2pdf().set(opt).from(element).save();
+    }
+
     document.querySelectorAll('form[action*="save"]').forEach(form => {
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -185,49 +200,76 @@
 
             const originalHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating PDF...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving & Generating PDF...';
+
+            const paperEl = document.querySelector('.quotation-paper') || document.querySelector('.quotation-paper-container');
 
             try {
                 const formData = new FormData(form);
                 const response = await fetch(form.action, {
                     method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     body: formData
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to generate PDF');
-                }
+                const contentType = response.headers.get('Content-Type') || '';
 
-                const disposition = response.headers.get('Content-Disposition');
-                let filename = 'Invoice.pdf';
-                if (disposition && disposition.includes('filename=')) {
-                    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
-                    if (matches && matches[1]) {
-                        filename = matches[1].replace(/['"]/g, '');
+                if (response.ok && contentType.includes('application/pdf')) {
+                    const disposition = response.headers.get('Content-Disposition');
+                    let filename = 'Invoice.pdf';
+                    if (disposition && disposition.includes('filename=')) {
+                        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                        if (matches && matches[1]) {
+                            filename = matches[1].replace(/['"]/g, '');
+                        }
                     }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Download Complete';
+                    setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
+                } else if (response.ok && contentType.includes('application/json')) {
+                    const resData = await response.json();
+                    const filename = resData.filename || 'Invoice.pdf';
+                    await generateClientPdf(paperEl, filename);
+
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Saved & Downloaded';
+                    setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
+                } else {
+                    const filename = 'Invoice.pdf';
+                    await generateClientPdf(paperEl, filename);
+
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Download Complete';
+                    setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
                 }
-
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Download Complete';
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                }, 3000);
             } catch (err) {
-                console.error('Error generating PDF:', err);
-                alert('An error occurred while generating the PDF.');
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
+                console.warn('Network or PDF error, using browser PDF engine fallback:', err);
+                try {
+                    const filename = 'Invoice.pdf';
+                    await generateClientPdf(paperEl, filename);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Download Complete';
+                    setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
+                } catch (fallbackErr) {
+                    console.error('Client PDF fallback error:', fallbackErr);
+                    window.print();
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
             }
         });
     });

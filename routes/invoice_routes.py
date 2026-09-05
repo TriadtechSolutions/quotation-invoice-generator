@@ -185,20 +185,36 @@ def preview_invoice():
 
 @invoice_bp.route('/invoice/save', methods=['POST'])
 def save_invoice():
-    """Save invoice to Firestore and return generated WeasyPrint PDF download."""
+    """Save invoice to data store and return generated PDF download or JSON fallback."""
     raw_data = parse_invoice_form_payload(request)
 
     created_invoice, errors = inv_service.create_invoice(raw_data)
     if errors:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            return jsonify({'success': False, 'errors': errors}), 400
         for err in errors:
             flash(err, 'error')
         return redirect(url_for('invoice.new_invoice'))
 
-    pdf_bytes, filename = PDFService.generate_invoice_pdf(created_invoice)
-
-    response = Response(pdf_bytes, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
+    try:
+        pdf_bytes, filename = PDFService.generate_invoice_pdf(created_invoice)
+        response = Response(pdf_bytes, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.headers['X-Invoice-ID'] = created_invoice.get('id', '')
+        return response
+    except Exception as err:
+        logger.error(f"Server-side PDF generation error for invoice {created_invoice.get('id')}: {err}")
+        inv_id = created_invoice.get('id', '')
+        clean_cust = created_invoice.get('customer', {}).get('name', 'Customer')
+        inv_no = created_invoice.get('invoiceNo', 'INV-2026-000')
+        fallback_filename = f"{inv_no}_{clean_cust}.pdf"
+        return jsonify({
+            'success': True,
+            'fallback_client_pdf': True,
+            'invoice_id': inv_id,
+            'filename': fallback_filename,
+            'message': 'Invoice saved successfully. Utilizing browser-native PDF engine.'
+        }), 200
 
 
 @invoice_bp.route('/invoices')
@@ -258,11 +274,16 @@ def download_pdf(inv_id):
         flash('Invoice not found.', 'error')
         return redirect(url_for('invoice.invoice_history'))
 
-    pdf_bytes, filename = PDFService.generate_invoice_pdf(inv)
+    try:
+        pdf_bytes, filename = PDFService.generate_invoice_pdf(inv)
+        response = Response(pdf_bytes, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as err:
+        logger.error(f"Error downloading invoice PDF {inv_id}: {err}")
+        flash('Unable to compile PDF server-side. Viewing invoice preview instead.', 'warning')
+        return redirect(url_for('invoice.view_invoice', inv_id=inv_id))
 
-    response = Response(pdf_bytes, mimetype='application/pdf')
-    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
 
 
 @invoice_bp.route('/invoice/<inv_id>/duplicate')
