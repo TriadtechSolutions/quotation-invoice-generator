@@ -275,14 +275,14 @@ class PDFService:
 
 
         # FROM & CUSTOMER Table
+        gstin_val = company.get('gstin') or '33DWFPK5792D1ZG'
         from_lines = [
             f"<b>FROM</b>",
             f"<b>{company.get('name', 'Win Spares')}</b>",
             company.get('address', '').replace('\n', '<br/>'),
-            f"Ph.no: {company.get('phone', '')}"
+            f"Ph.no: {company.get('phone', '')}",
+            f"GSTIN: {gstin_val}"
         ]
-        if company.get('gstin'):
-            from_lines.append(f"GSTIN: {company.get('gstin')}")
 
         cust_lines = [
             f"<b>CUSTOMER</b>",

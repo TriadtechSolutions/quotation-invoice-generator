@@ -1,6 +1,6 @@
-# Win Spares Document Management System — VRF Quotation Module (Version 1)
+# Win Spares Document Management System — Quotation Module (Version 1)
 
-Production-ready web application built for **Win Spares** to generate, preview, save, and download professional **VRF Quotations**.
+Production-ready web application built for **Win Spares** to generate, preview, save, and download professional **Quotations**.
 
 Designed with a modular architecture so an **Invoice module can be added seamlessly in future versions without rebuilding the application**.
 
@@ -109,7 +109,7 @@ Ensure Python 3.10+ is installed on your system.
 
 ### 2. Clone / Open Directory
 ```bash
-cd "VRF Quotation Invoice Generator"
+cd "Quotation Invoice Generator"
 ```
 
 ### 3. Create & Activate Virtual Environment

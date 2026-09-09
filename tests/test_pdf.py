@@ -17,10 +17,10 @@ class TestPDFGeneration(unittest.TestCase):
                 "name": "Win Spares",
                 "address": "No: 70, Dr. Alagappa Road, near Six Corner Road\nTatabad, Coimbatore - 641012",
                 "phone": "93617 62191",
-                "quotationTitle": "VRF Quotation",
+                "quotationTitle": "Quotation",
                 "greeting": "Greetings from WIN SPARES!",
-                "closingText": "Thank you for allowing us to serve you. Please find our quotation for your requirements below.",
-                "serviceFooter": "VRF Annual Maintenance Contract | Win Spares"
+                "closingText": "Thank you for allowing us to serve you. Please find our quotation for your requirements below."
+              
             },
             "customer": {
                 "name": "Visesha Silk Sarees LLP",

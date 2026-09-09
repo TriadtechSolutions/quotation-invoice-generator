@@ -54,9 +54,8 @@
                             <div class="party-name">{{ company.name }}</div>
                             <div class="party-address">{{ company.address }}</div>
                             <div class="party-contact">Ph.no: {{ company.phone }}</div>
-                            {% if company.gstin %}
-                            <div class="party-contact">GSTIN: {{ company.gstin }}</div>
-                            {% endif %}
+                            <div class="party-contact">GSTIN: {{ company.gstin if company.gstin else '33DWFPK5792D1ZG'
+                                }}</div>
                         </td>
                         <td>
                             <div class="party-title">CUSTOMER</div>

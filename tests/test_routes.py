@@ -21,7 +21,7 @@ class TestRoutes(unittest.TestCase):
         """Test GET /quotation/new renders quotation form."""
         res = self.app.get('/quotation/new')
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'Create VRF Quotation', res.data)
+        self.assertIn(b'Create Quotation', res.data)
         self.assertIn(b'Visesha Silk Sarees LLP', res.data)
 
     def test_quotation_preview_route(self):
@@ -40,7 +40,7 @@ class TestRoutes(unittest.TestCase):
         }
         res = self.app.post('/quotation/preview', data=payload)
         self.assertEqual(res.status_code, 200)
-        self.assertIn(b'VRF Quotation', res.data)
+        self.assertIn(b'Quotation', res.data)
         self.assertIn(b'15,000', res.data)
         self.assertIn(b'17,700', res.data)
 
